@@ -1,0 +1,9 @@
+name = "lukairo-hq-api"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "npm run build"  # if needed
+
+[[build.upload]]
+format = "modules"

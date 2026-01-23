@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LUKAIRO Command Centre</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        #hero-globe {
+            position: relative;
+            width: 100%;
+            height: 720px;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(0,255,255,0.05) 0%, rgba(0,0,0,0.9) 70%);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #hero-globe canvas {
+            display: block;
+        }
+
+        .loading {
+            color: #00ffff;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .content {
+            position: relative;
+            z-index: 2;
+            padding: 7rem 1.5rem;
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 3.5rem;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .globe-side {
+            display: flex;
+            justify-content: center;
+        }
+
+        .content-side {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: #67e8f9;
+            margin-bottom: 0;
+        }
+
+        .hero-subtitle {
+            font-size: 1.125rem;
+            color: #cbd5e1;
+            max-width: 36rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-button {
+            background: #22d3ee;
+            border: none;
+            padding: 0.75rem 1.75rem;
+            border-radius: 9999px;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.45);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: fit-content;
+        }
+
+        .cta-button:hover {
+            box-shadow: 0 0 70px rgba(0, 255, 204, 0.65);
+        }
+
+        @media (min-width: 1024px) {
+            .hero-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 3.5rem;
+            }
+
+            .globe-side {
+                justify-content: flex-start;
+            }
+
+            .content-side {
+                text-align: left;
+            }
+
+            .hero-title {
+                font-size: 5rem;
+            }
+
+            .hero-subtitle {
+                margin-left: 0;
+                margin-right: 0;
+            }
+        }
+
+        .hq-section {
+            margin-top: 4rem;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #00ffff;
+            margin-bottom: 1rem;
+        }
+
+        .card-content {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <section class="hero-section">
+            <div class="hero-grid">
+                <!-- LEFT: Globe -->
+                <div class="globe-side">
+                    <div id="hero-globe">
+                        <div class="loading">Loading 3D Globe...</div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Copy -->
+                <div class="content-side">
+                    <h1 class="hero-title">
+                        LUKAIRO
+                    </h1>
+
+                    <p class="hero-subtitle">
+                        Plug-and-Play Growth Engines
+                    </p>
+
+                    <a
+                        href="https://www.lukairoengine.com/widget/booking/SGgO7LS3M1CVcD0ok6xV"
+                        target="_blank"
+                        rel="noreferrer"
+                        class="cta-button"
+                    >
+                        Book a Call
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="hq-section">
+            <div class="card">
+                <h2 class="card-title">Deployment Pipeline</h2>
+                <p class="card-content">LOCAL → GIT → (CI via Microsoft) → CLOUDFLARE → PRODUCTION</p>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Key Capabilities</h2>
+                <ul class="card-content">
+                    <li>• Operations systems + SOPs</li>
+                    <li>• Lead flow + pipeline + follow-up</li>
+                    <li>• Go-to-market execution (SaaS + service)</li>
+                    <li>• Scale with automation + reporting</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Projects</h2>
+                <ul class="card-content">
+                    <li>• WORKSPACE: Main workspace directory</li>
+                    <li>• hcp-migration: HCP migration project</li>
+                    <li>• phone-ai: Phone AI related code</li>
+                    <li>• projects: General projects folder</li>
+                    <li>• tailwind-test: Tailwind CSS testing</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h2 class="card-title">Featured Project</h2>
+                <p class="card-content">LUKAIRO® | Plug-and-Play Growth Engines</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Three.js Globe Setup
+        let scene, camera, renderer, globe, halo, logoSprite;
+        let time = 0;
+
+        let containerEl = null;
+
+        function logStatus(message) {
+            console.log(message);
+        }
+
+        function init() {
+            containerEl = document.getElementById('hero-globe');
+            if (!containerEl) {
+                throw new Error('globe container not found');
+            }
+
+            logStatus('Initializing scene...');
+
+            if (!window.THREE) {
+                throw new Error('THREE not available on window');
+            }
+
+            // Scene
+            scene = new THREE.Scene();
+
+            // Camera
+            const width = containerEl.clientWidth || 600;
+            const height = containerEl.clientHeight || 600;
+            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            camera.position.z = 14;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            renderer.setClearColor(0x000000, 0);
+            renderer.domElement.style.width = '100%';
+            renderer.domElement.style.height = '100%';
+            containerEl.innerHTML = '';
+            containerEl.appendChild(renderer.domElement);
+            logStatus(`Renderer attached (${width}x${height})`);
+
+            // Globe Geometry and Material
+            const globeGeometry = new THREE.SphereGeometry(5.2, 96, 96);
+            const globeMaterial = new THREE.MeshBasicMaterial({
+                color: 0x00ffff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.6
+            });
+            globe = new THREE.Mesh(globeGeometry, globeMaterial);
+            globe.position.x = 0;
+            scene.add(globe);
+
+            // Halo Geometry and Material
+            const haloGeometry = new THREE.SphereGeometry(5.35, 64, 64);
+            const haloMaterial = new THREE.MeshBasicMaterial({
+                color: 0x0080ff,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.3
+            });
+            halo = new THREE.Mesh(haloGeometry, haloMaterial);
+            halo.position.x = 0;
+            scene.add(halo);
+
+            // Starfield background
+            const starGeometry = new THREE.BufferGeometry();
+            const starCount = 2800;
+            const positions = new Float32Array(starCount * 3);
+            for (let i = 0; i < starCount; i++) {
+                const r = 50 * Math.random() + 15; // spread stars out
+                const phi = Math.random() * Math.PI * 2;
+                const costheta = Math.random() * 2 - 1;
+                const theta = Math.acos(costheta);
+                const x = r * Math.sin(theta) * Math.cos(phi);
+                const y = r * Math.sin(theta) * Math.sin(phi);
+                const z = r * Math.cos(theta);
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = z;
+            }
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const starMaterial = new THREE.PointsMaterial({
+                color: 0x66ffee,
+                size: 0.06,
+            });
+
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            logStatus('Geometry ready, loading logo texture...');
+
+            // Logo Sprite
+            const textureLoader = new THREE.TextureLoader();
+            const logoTexture = textureLoader.load(
+                'https://storage.googleapis.com/msgsndr/B47X3dkLb4AkvxzX2Tck/media/68fd9c8669024a61b5499aa1.png',
+                function() {
+                    logStatus('Logo texture loaded');
+                },
+                undefined,
+                function(error) {
+                    console.warn('Logo texture failed to load:', error);
+                    logStatus('Logo texture failed; continuing without it');
+                }
+            );
+
+            const logoMaterial = new THREE.SpriteMaterial({
+                map: logoTexture,
+                transparent: true,
+                opacity: 0.45,
+                depthWrite: false,
+            });
+
+            logoSprite = new THREE.Sprite(logoMaterial);
+            logoSprite.scale.set(1.7, 1.7, 1);
+            logoSprite.position.set(0, 0, 0);
+            scene.add(logoSprite);
+
+            // Controls
+            if (THREE.OrbitControls) {
+                const controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+            } else {
+                logStatus('OrbitControls missing; skipping controls');
+            }
+
+            // Animation Loop
+            logStatus('Starting animation loop...');
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!renderer || !camera || !globe || !halo || !logoSprite) return;
+
+            // Globe and Halo rotation
+            globe.rotation.y += 0.006;
+            halo.rotation.y -= 0.004;
+
+            // Logo rotation and pulsing
+            logoSprite.rotation.z += 0.0006;
+            const pulse = 1 + Math.sin(time * 2.2) * 0.02;
+            logoSprite.scale.set(1.7 * pulse, 1.7 * pulse, 1);
+            time += 0.01;
+
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            if (!renderer || !camera || !containerEl) return;
+            const width = containerEl.clientWidth || 600;
+            const height = containerEl.clientHeight || 600;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function scrollToContact() {
+            // Placeholder for contact functionality
+            alert('Contact functionality coming soon!');
+        }
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            logStatus('Page load event fired');
+            const container = document.getElementById('hero-globe');
+            const loading = container?.querySelector('.loading');
+
+            try {
+                init();
+                logStatus('Three.js initialized successfully');
+                if (loading) loading.style.display = 'none';
+            } catch (error) {
+                console.error('Error initializing Three.js:', error);
+                logStatus('Init error: ' + (error?.message || error));
+                if (loading) {
+                    loading.innerHTML = '🌐 3D Globe<br><small>' + (error?.message || 'WebGL not available') + '</small>';
+                    loading.style.fontSize = '1.6rem';
+                    loading.style.textAlign = 'center';
+                }
+            }
+        });
+
+        window.addEventListener('error', function(event) {
+            logStatus('Window error: ' + (event?.message || 'unknown'));
+        });
+
+        window.addEventListener('unhandledrejection', function(event) {
+            logStatus('Promise rejection: ' + (event?.reason?.message || event?.reason || 'unknown'));
+        });
+
+        window.addEventListener('resize', onWindowResize);
+    </script>
+</body>
+</html>

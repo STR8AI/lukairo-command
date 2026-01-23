@@ -1,0 +1,17 @@
+name = "lukairo-engine"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+account_id = "your-account-id-here"
+
+[build]
+command = "npm run build"
+
+[build.upload]
+format = "modules"
+
+[[build.upload.rules]]
+type = "ESModule"
+globs = ["**/*.js"]
+
+[site]
+bucket = "./cf-pages"

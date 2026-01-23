@@ -1,0 +1,30 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+stages:
+- stage: Build
+  jobs:
+  - job: BuildFrontend
+    steps:
+    - script: echo "Build frontend for Cloudflare Pages"
+      displayName: 'Build Frontend'
+
+  - job: BuildWorkers
+    steps:
+    - script: echo "Build APIs and automations for Cloudflare Workers"
+      displayName: 'Build Workers'
+
+- stage: Deploy
+  jobs:
+  - job: DeployFrontend
+    steps:
+    - script: echo "Deploy to Cloudflare Pages"
+      displayName: 'Deploy Frontend'
+
+  - job: DeployWorkers
+    steps:
+    - script: echo "Deploy to Cloudflare Workers"
+      displayName: 'Deploy Workers'
