@@ -14,4 +14,4 @@ type = "ESModule"
 globs = ["**/*.js"]
 
 [site]
-bucket = "./cf-pages"
+bucket = "./public"

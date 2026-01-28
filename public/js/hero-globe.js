@@ -1,20 +1,50 @@
 // Hero Globe Animation using Three.js with Icon Nodes
-document.addEventListener('DOMContentLoaded', function() {
+function initGlobe() {
+  console.log('Initializing globe...');
   const canvas = document.getElementById('globe');
-  if (!canvas) return;
+  console.log('Canvas element:', canvas);
+  if (!canvas) {
+    console.error('Canvas element not found!');
+    // Create a fallback message
+    const msg = document.createElement('div');
+    msg.textContent = 'Canvas not found!';
+    msg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:red;font-size:24px;background:black;padding:20px;';
+    document.body.appendChild(msg);
+    return;
+  }
+
+  console.log('Three.js available:', typeof THREE);
+  if (!THREE) {
+    console.error('Three.js not loaded!');
+    return;
+  }
 
   // Scene, Camera, Renderer
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+    console.log('WebGL renderer created successfully');
+  } catch (e) {
+    console.error('Failed to create WebGL renderer:', e);
+    // Fallback: show error message
+    canvas.style.display = 'none';
+    const errorMsg = document.createElement('div');
+    errorMsg.textContent = 'WebGL not supported - globe cannot be displayed';
+    errorMsg.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:white;font-family:monospace;background:black;padding:20px;border-radius:10px;';
+    document.body.appendChild(errorMsg);
+    return;
+  }
   renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.setClearColor(0x000000, 0); // Transparent background
+  renderer.setClearColor(0x000000, 0); // Transparent background for overlay
 
   // Globe Geometry and Material
   const geometry = new THREE.SphereGeometry(5, 32, 32);
-  const material = new THREE.MeshBasicMaterial({ color: 0x4a90e2, wireframe: true });
+  const material = new THREE.MeshBasicMaterial({ color: 0x00e5d1, wireframe: true, transparent: false, opacity: 1 });
   const globe = new THREE.Mesh(geometry, material);
   scene.add(globe);
+  console.log('Globe mesh added to scene');
 
   // Lighting
   const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
@@ -225,6 +255,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Rotate the globe
     globe.rotation.y += 0.005;
+    globe.rotation.x += 0.002;
 
     // Update icons if loaded
     if (iconSystem) {
@@ -233,6 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     renderer.render(scene, camera);
   }
+  console.log('Starting animation loop');
   animate();
 
   // Handle Window Resize
@@ -241,4 +273,21 @@ document.addEventListener('DOMContentLoaded', function() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   });
-});
+}
+
+// Initialize when both DOM and Three.js are ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGlobe);
+} else {
+  initGlobe();
+}
+
+// Also check if Three.js is already loaded
+if (typeof THREE !== 'undefined') {
+  initGlobe();
+} else {
+  // Wait for Three.js to load
+  window.addEventListener('load', function() {
+    setTimeout(initGlobe, 100); // Small delay to ensure Three.js is ready
+  });
+}

@@ -1,0 +1,3 @@
+from itertools import islice
+for h in islice(soup.find_all(['h1','h2','h3']), max_sections):
+    ...
