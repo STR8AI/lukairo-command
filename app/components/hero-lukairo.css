@@ -1,9 +1,9 @@
 :root {
-  --bg-0: #020409;
-  --accent: #63f1ea;
-  --accent-dark: #3fd8c6;
-  --muted: #9fffee;
-  --card: #071218;
+  --lk-bg-0: #020409;
+  --lk-accent: #63f1ea;
+  --lk-accent-dark: #3fd8c6;
+  --lk-muted: #9fffee;
+  --lk-card: #071218;
 }
 
 #lukairo-engine {
@@ -60,7 +60,7 @@
 
 .lukairo-brand-text {
   font-weight: 900;
-  color: var(--accent);
+  color: var(--lk-accent);
   letter-spacing: 0.08em;
   font-size: 14px;
 }
@@ -80,7 +80,7 @@
 }
 
 .lukairo-nav a:hover {
-  color: var(--muted);
+  color: var(--lk-muted);
 }
 
 .lukairo-cta {
@@ -287,7 +287,7 @@
 
 .lk-services {
   padding: 48px 24px 80px;
-  background: var(--bg-0);
+  background: var(--lk-bg-0);
   color: #e7fbf7;
 }
 

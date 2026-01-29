@@ -1,4 +1,34 @@
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
+import {
+  AmbientLight,
+  BackSide,
+  BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  CanvasTexture,
+  CylinderGeometry,
+  Group,
+  Line,
+  LineBasicMaterial,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  PerspectiveCamera,
+  PlaneGeometry,
+  Points,
+  PointsMaterial,
+  PointLight,
+  Raycaster,
+  Scene,
+  SphereGeometry,
+  Texture,
+  TextureLoader,
+  TorusGeometry,
+  Vector2,
+  Vector3,
+  WebGLRenderer,
+  SRGBColorSpace,
+} from "three";
 import "./hero-lukairo.css";
 
 /*
@@ -26,7 +56,6 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
   const cleanupRef = useRef(null);
 
   useEffect(() => {
-    let THREE;
     let renderer, scene, camera, rafId;
     let engineGroup, coreOuter, wire, halo, particles, rotatingLight;
     const nodes = [];
@@ -46,7 +75,7 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
       return `rgba(${r},${g},${b},${alpha})`;
     }
 
-    function makeIconTexture(THREE, text, bgColor, size = 256) {
+    function makeIconTexture(text, bgColor, size = 256) {
       const canvas = document.createElement("canvas");
       canvas.width = canvas.height = size;
       const ctx = canvas.getContext("2d");
@@ -67,14 +96,14 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
       ctx.fillStyle = hexToRgba(bgColor, 0.12);
       ctx.beginPath(); ctx.arc(cx, cy, r * 1.05, 0, Math.PI * 2); ctx.fill();
 
-      return new THREE.CanvasTexture(canvas);
+      return new CanvasTexture(canvas);
     }
 
     // Safe load: try remote image with crossOrigin, fallback to canvas texture
-    function loadTextureSafe(THREE, url, fallbackText, fallbackColor) {
+    function loadTextureSafe(url, fallbackText, fallbackColor) {
       return new Promise((resolve) => {
         if (!url) {
-          resolve(makeIconTexture(THREE, fallbackText, fallbackColor));
+          resolve(makeIconTexture(fallbackText, fallbackColor));
           return;
         }
         const img = new Image();
@@ -82,21 +111,21 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
         let settled = false;
         img.onload = () => {
           try {
-            const tex = new THREE.Texture(img);
+            const tex = new Texture(img);
             tex.needsUpdate = true;
-            try { tex.colorSpace = THREE.SRGBColorSpace; } catch (e) {}
+            try { tex.colorSpace = SRGBColorSpace; } catch (e) {}
             settled = true;
             resolve(tex);
           } catch (err) {
             settled = true;
             console.warn("Texture wrap failed; falling back:", err);
-            resolve(makeIconTexture(THREE, fallbackText, fallbackColor));
+            resolve(makeIconTexture(fallbackText, fallbackColor));
           }
         };
         img.onerror = (err) => {
           if (!settled) {
             console.warn("Icon load failed/CORS blocked:", url, err);
-            resolve(makeIconTexture(THREE, fallbackText, fallbackColor));
+            resolve(makeIconTexture(fallbackText, fallbackColor));
           }
         };
         img.src = url;
@@ -104,35 +133,35 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
     }
 
     // Procedural gears
-    function createGears(THREE, parent) {
+    function createGears(parent) {
       const cogCount = 3;
       for (let i = 0; i < cogCount; i++) {
         const radius = 1.0 + i * 0.95;
         const thickness = 0.22;
         const segs = prefersReduced ? 24 : 48;
-        const tor = new THREE.TorusGeometry(radius, thickness, 8, Math.max(32, segs));
-        const mat = new THREE.MeshStandardMaterial({ color: 0x052b2b, emissive: 0x00ffd6, emissiveIntensity: 0.48, metalness: 0.95, roughness: 0.18 });
-        const ring = new THREE.Mesh(tor, mat);
+        const tor = new TorusGeometry(radius, thickness, 8, Math.max(32, segs));
+        const mat = new MeshStandardMaterial({ color: 0x052b2b, emissive: 0x00ffd6, emissiveIntensity: 0.48, metalness: 0.95, roughness: 0.18 });
+        const ring = new Mesh(tor, mat);
         ring.rotation.x = Math.PI * 0.5;
         ring.position.z = (i - 1) * 0.06;
         parent.add(ring);
 
-        const teeth = new THREE.Group();
-        const toothGeo = new THREE.BoxGeometry(0.12, 0.05, 0.32);
-        const toothMat = new THREE.MeshStandardMaterial({ color: 0x042a2a, emissive: 0x00ffd6, emissiveIntensity: 0.18, metalness: 0.9, roughness: 0.18 });
+        const teeth = new Group();
+        const toothGeo = new BoxGeometry(0.12, 0.05, 0.32);
+        const toothMat = new MeshStandardMaterial({ color: 0x042a2a, emissive: 0x00ffd6, emissiveIntensity: 0.18, metalness: 0.9, roughness: 0.18 });
         const teethCount = 10 + i * 4;
         for (let t = 0; t < teethCount; t++) {
           const angle = (t / teethCount) * Math.PI * 2;
           const tx = Math.cos(angle) * (radius + 0.14);
           const ty = Math.sin(angle) * (radius + 0.14);
-          const tooth = new THREE.Mesh(toothGeo, toothMat);
+          const tooth = new Mesh(toothGeo, toothMat);
           tooth.position.set(tx, ty, (i - 1) * 0.06);
           tooth.rotation.z = angle;
           teeth.add(tooth);
         }
         parent.add(teeth);
 
-        const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.36, 24), new THREE.MeshStandardMaterial({ color: 0x001414, metalness: 1, roughness: 0.08 }));
+        const axle = new Mesh(new CylinderGeometry(0.12, 0.12, 0.36, 24), new MeshStandardMaterial({ color: 0x001414, metalness: 1, roughness: 0.08 }));
         axle.rotation.x = Math.PI * 0.5;
         axle.position.z = (i - 1) * 0.06;
         parent.add(axle);
@@ -140,9 +169,9 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
     }
 
     // Setup icon nodes with real logos (with fallback)
-    function setupIconNodesWithLogos(THREE, scene, camera, renderer, nodesArr, beamsArr, labelsArr) {
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
+    function setupIconNodesWithLogos(scene, camera, renderer, nodesArr, beamsArr, labelsArr) {
+      const raycaster = new Raycaster();
+      const mouse = new Vector2();
 
       function onPointerDown(e) {
         const rect = renderer.domElement.getBoundingClientRect();
@@ -163,16 +192,16 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
 
       // create nodes; we await all textures to keep consistent rendering
       const promises = CHANNELS.map((ch, i) =>
-        loadTextureSafe(THREE, ch.icon, ch.text, ch.color).then((tex) => {
-          const planeGeo = new THREE.PlaneGeometry(1.6, 1.6);
-          const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true });
-          const plane = new THREE.Mesh(planeGeo, mat);
+        loadTextureSafe(ch.icon, ch.text, ch.color).then((tex) => {
+          const planeGeo = new PlaneGeometry(1.6, 1.6);
+          const mat = new MeshBasicMaterial({ map: tex, transparent: true });
+          const plane = new Mesh(planeGeo, mat);
           plane.userData = { orbit: 9.6 + i * 0.9, angle: Math.random() * Math.PI * 2, phase: i, scale: 1, dir: 1 };
           plane.renderOrder = 999;
           scene.add(plane);
           nodesArr.push(plane);
 
-          const beam = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: parseInt(ch.color.replace("#", "0x")), transparent: true, opacity: 0 }));
+          const beam = new Line(new BufferGeometry().setFromPoints([new Vector3(), new Vector3()]), new LineBasicMaterial({ color: parseInt(ch.color.replace("#", "0x")), transparent: true, opacity: 0 }));
           scene.add(beam);
           beamsArr.push(beam);
 
@@ -194,80 +223,79 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
     }
 
     // ---- Init scene ----
-    (async function init() {
+    (function init() {
       if (!mountRef.current) return;
-      THREE = await import("three");
 
       const mount = mountRef.current;
       const w = Math.max(1, mount.clientWidth);
       const h = Math.max(1, mount.clientHeight);
 
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(55, w / h, 0.1, 4000);
+      scene = new Scene();
+      camera = new PerspectiveCamera(55, w / h, 0.1, 4000);
       camera.position.set(0, 0.9, 26);
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, prefersReduced ? 1 : 2));
       renderer.setSize(w, h, false);
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.outputColorSpace = SRGBColorSpace;
       mount.appendChild(renderer.domElement);
 
-      scene.add(new THREE.AmbientLight(0x66fff0, 0.42));
-      rotatingLight = new THREE.PointLight(0x00e5d1, 1.2, 220);
+      scene.add(new AmbientLight(0x66fff0, 0.42));
+      rotatingLight = new PointLight(0x00e5d1, 1.2, 220);
       scene.add(rotatingLight);
-      const key = new THREE.PointLight(0x66ffee, 0.6, 300);
+      const key = new PointLight(0x66ffee, 0.6, 300);
       key.position.set(10, 8, 16);
       scene.add(key);
 
       // engine group + gears
-      engineGroup = new THREE.Group();
+      engineGroup = new Group();
       scene.add(engineGroup);
-      createGears(THREE, engineGroup);
+      createGears(engineGroup);
 
       // outer globe (transparent)
-      coreOuter = new THREE.Mesh(new THREE.SphereGeometry(6.2, prefersReduced ? 64 : 128, prefersReduced ? 64 : 128), new THREE.MeshStandardMaterial({
+      coreOuter = new Mesh(new SphereGeometry(6.2, prefersReduced ? 64 : 128, prefersReduced ? 64 : 128), new MeshStandardMaterial({
         color: 0x002426, metalness: 0.6, roughness: 0.55, emissive: 0x003632, emissiveIntensity: 0.45, transparent: true, opacity: 0.18
       }));
       scene.add(coreOuter);
 
-      const inner = new THREE.Mesh(new THREE.SphereGeometry(4.8, prefersReduced ? 64 : 96, prefersReduced ? 48 : 96), new THREE.MeshStandardMaterial({
+      const inner = new Mesh(new SphereGeometry(4.8, prefersReduced ? 64 : 96, prefersReduced ? 48 : 96), new MeshStandardMaterial({
         color: 0x071515, metalness: 0.9, roughness: 0.12, emissive: 0x002e2a, emissiveIntensity: 0.65, transparent: true, opacity: 0.95
       }));
       scene.add(inner);
 
-      wire = new THREE.Mesh(new THREE.SphereGeometry(6.22, prefersReduced ? 64 : 128, prefersReduced ? 64 : 128), new THREE.MeshBasicMaterial({
+      wire = new Mesh(new SphereGeometry(6.22, prefersReduced ? 64 : 128, prefersReduced ? 64 : 128), new MeshBasicMaterial({
         color: 0x00ffe0, wireframe: true, transparent: true, opacity: 0.46
       }));
       scene.add(wire);
 
-      halo = new THREE.Mesh(new THREE.SphereGeometry(6.6, prefersReduced ? 48 : 64, prefersReduced ? 48 : 64), new THREE.MeshBasicMaterial({
-        color: 0x00e5d1, transparent: true, opacity: 0.08, side: THREE.BackSide
+      halo = new Mesh(new SphereGeometry(6.6, prefersReduced ? 48 : 64, prefersReduced ? 48 : 64), new MeshBasicMaterial({
+        color: 0x00e5d1, transparent: true, opacity: 0.08, side: BackSide
       }));
       scene.add(halo);
 
       // central logo
-      const texLoader = new THREE.TextureLoader();
-      const logoTex = texLoader.load(CENTER_LOGO, (t) => { try { t.colorSpace = THREE.SRGBColorSpace; } catch (e) {} });
-      const logoSphere = new THREE.Mesh(new THREE.SphereGeometry(1.9, prefersReduced ? 32 : 64, prefersReduced ? 32 : 64), new THREE.MeshStandardMaterial({
+      const texLoader = new TextureLoader();
+      const logoTex = texLoader.load(CENTER_LOGO, (t) => { try { t.colorSpace = SRGBColorSpace; } catch (e) {} });
+      const logoSphere = new Mesh(new SphereGeometry(1.9, prefersReduced ? 32 : 64, prefersReduced ? 32 : 64), new MeshStandardMaterial({
         map: logoTex, metalness: 0.9, roughness: 0.12, emissive: 0x002c2a, emissiveIntensity: 0.6
       }));
       engineGroup.add(logoSphere);
 
       // starfield
       const STAR_COUNT = Math.max(1400, Math.floor((window.innerWidth * window.innerHeight) / 2500));
-      const starGeo = new THREE.BufferGeometry();
+      const starGeo = new BufferGeometry();
       const starPos = new Float32Array(STAR_COUNT * 3);
       for (let i = 0; i < STAR_COUNT; i++) {
         starPos[i * 3 + 0] = (Math.random() - 0.5) * 3000;
         starPos[i * 3 + 1] = (Math.random() - 0.5) * 1400;
         starPos[i * 3 + 2] = (Math.random() - 0.5) * 3000 - 400;
       }
-      starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
-      particles = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x6fffe8, size: 0.06, transparent: true, opacity: 0.34, depthWrite: false }));
+      starGeo.setAttribute("position", new BufferAttribute(starPos, 3));
+      particles = new Points(starGeo, new PointsMaterial({ color: 0x6fffe8, size: 0.06, transparent: true, opacity: 0.34, depthWrite: false }));
       scene.add(particles);
 
       // icons + beams
-      const teardownPromise = setupIconNodesWithLogos(THREE, scene, camera, renderer, nodes, beams, labels);
+      const teardownPromise = setupIconNodesWithLogos(scene, camera, renderer, nodes, beams, labels);
 
       // animation
       const t0 = performance.now();
@@ -293,7 +321,7 @@ export default function Hero({ bookingHref = "https://www.lukairoengine.com/widg
           n.scale.setScalar(n.userData.scale);
 
           const beam = beams[i];
-          beam.geometry.setFromPoints([new THREE.Vector3(), n.position.clone()]);
+          beam.geometry.setFromPoints([new Vector3(), n.position.clone()]);
           beam.material.opacity = Math.max(beam.material.opacity * 0.96, Math.min(0.7, Math.abs(Math.sin(t + i) * 0.8)));
 
           const scr = n.position.clone().project(camera);
