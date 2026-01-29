@@ -38,16 +38,16 @@ import "./hero-lukairo.css";
 */
 
 const CHANNELS = [
-  { id: "Web Chat",   text: "💬", color: "#00E5D1", icon: null, link: "javascript:void(0);" }, // opens LeadConnector widget
-  { id: "SMS",        text: "SMS", color: "#3FD8C6", icon: null, link: "sms:+14374947028" },
-  { id: "WhatsApp",   text: "WA",  color: "#00BFA5", icon: null, link: "https://wa.me/14374947028" },
-  { id: "Messenger",  text: "FB",  color: "#3CA8FF", icon: null, link: "https://m.me/LUKAIRO_" },
-  { id: "Instagram",  text: "IG",  color: "#8AB4F8", icon: null, link: "https://instagram.com/LUKAIRO_" },
-  { id: "Email",      text: "✉️", color: "#66FFD0", icon: null, link: "mailto:lukairoteam@outlook.com" },
-  { id: "Calls",      text: "📞", color: "#63F1EA", icon: null, link: "tel:+14374947028" },
-  { id: "Booking",    text: "📅", color: "#4FDEB6", icon: null, link: "https://api.lukairo.ca/widget/bookings/booking-lukairo" },
-  { id: "CRM",        text: "CRM", color: "#9FFEEE", icon: null, link: "https://app.lukairo.app" },
-  { id: "Automation", text: "⚙️", color: "#66D6FF", icon: null, link: "https://app.lukairo.app" }
+  { id: "Aiva",        text: "💬", color: "#00E5D1", icon: "https://cdn.example.com/icons/webchat.svg",   link: "javascript:void(0);" },
+  { id: "SMS",         text: "SMS", color: "#3FD8C6", icon: "https://cdn.example.com/icons/sms.svg",       link: "sms:+14374947028" },
+  { id: "WhatsApp",    text: "WA",  color: "#00BFA5", icon: "https://cdn.example.com/icons/whatsapp.svg",  link: "https://wa.me/14374947028" },
+  { id: "Messenger",   text: "FB",  color: "#3CA8FF", icon: "https://cdn.example.com/icons/messenger.svg", link: "https://m.me/LUKAIRO_" },
+  { id: "Instagram",   text: "IG",  color: "#8AB4F8", icon: "https://cdn.example.com/icons/instagram.svg", link: "https://instagram.com/LUKAIRO_" },
+  { id: "Email",       text: "✉️", color: "#66FFD0", icon: "https://cdn.example.com/icons/email.svg",     link: "mailto:lukairoteam@outlook.com" },
+  { id: "Calls",       text: "📞", color: "#63F1EA", icon: "https://cdn.example.com/icons/phone.svg",     link: "tel:+14374947028" },
+  { id: "Booking",     text: "📅", color: "#4FDEB6", icon: "https://cdn.example.com/icons/calendar.svg",  link: "https://api.lukairo.ca/widget/bookings/booking-lukairo" },
+  { id: "CRM",         text: "CRM", color: "#9FFEEE", icon: "https://cdn.example.com/icons/hubspot.svg",   link: "https://app.lukairo.app" },
+  { id: "Automation",  text: "⚙️", color: "#66D6FF", icon: "https://cdn.example.com/icons/automation.svg", link: "https://app.lukairo.app" }
 ];
 
 export default function Hero({ bookingHref = "https://www.lukairoengine.com/widget/booking/SGgO7LS3M1CVcD0ok6xV" }) {
