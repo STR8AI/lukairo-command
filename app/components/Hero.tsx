@@ -3,23 +3,38 @@ import "./hero-lukairo.css";
 
 type HeroProps = {
   bookingHref?: string;
+  gearsTextureUrl?: string;
+  circuitsTextureUrl?: string;
+  globeTextureUrl?: string;
 };
 
-export default function Hero({ bookingHref }: HeroProps) {
+const DEFAULT_TEXTURES = {
+  gears: "/assets/lukairo_gears.svg",
+  circuits: "/assets/lukairo_circuits.svg",
+  globe: "/assets/lukairo_globe.svg",
+};
+
+export default function Hero({
+  bookingHref,
+  gearsTextureUrl = DEFAULT_TEXTURES.gears,
+  circuitsTextureUrl = DEFAULT_TEXTURES.circuits,
+  globeTextureUrl = DEFAULT_TEXTURES.globe,
+}: HeroProps) {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [showFallback, setShowFallback] = useState(false);
 
   useEffect(() => {
     let renderer: import("three").WebGLRenderer | null = null;
     let scene: import("three").Scene | null = null;
     let camera: import("three").PerspectiveCamera | null = null;
-    let coreGroup: import("three").Group | null = null;
     let frameId = 0;
-    let iconSystem: any = null;
-
-    const labels: HTMLDivElement[] = [];
-    const nodes: import("three").Mesh[] = [];
-    const beams: import("three").Line[] = [];
+    let clock: import("three").Clock | null = null;
+    let gearsCore: import("three").Mesh | null = null;
+    let circuitShell: import("three").Mesh | null = null;
+    let globeShell: import("three").Mesh | null = null;
+    let wireMesh: import("three").Mesh | null = null;
+    let starField: import("three").Points | null = null;
 
     const disposeObject = (obj?: { traverse?: (fn: (c: any) => void) => void }) => {
       obj?.traverse?.((child: any) => {
@@ -28,277 +43,36 @@ export default function Hero({ bookingHref }: HeroProps) {
           if (Array.isArray(child.material)) child.material.forEach((m: any) => m.dispose?.());
           else child.material.dispose?.();
         }
-        child.texture?.dispose?.();
       });
     };
 
-    const toScreen = (pos: import("three").Vector3) => {
-      if (!camera) return { x: 0, y: 0, z: 0 };
-      const projected = pos.clone().project(camera);
-      return {
-        x: (projected.x + 1) * 0.5 * window.innerWidth,
-        y: (-projected.y + 1) * 0.5 * window.innerHeight,
-        z: projected.z,
-      };
-    };
-
-    const createGears = (THREE: typeof import("three"), parent: import("three").Group) => {
-      const gears = [
-        { radius: 2.4, teeth: 18, thickness: 0.24, speed: 0.005, color: 0x00e5d1 },
-        { radius: 1.6, teeth: 14, thickness: 0.22, speed: -0.007, color: 0x6cead9 },
-        { radius: 1.1, teeth: 10, thickness: 0.2, speed: 0.009, color: 0x00ffee },
-      ];
-
-      return gears.map((g, i) => {
-        const points = [] as import("three").Vector2[];
-        for (let t = 0; t < g.teeth; t++) {
-          const a1 = (t / g.teeth) * Math.PI * 2;
-          const a2 = ((t + 0.5) / g.teeth) * Math.PI * 2;
-          points.push(new THREE.Vector2(Math.cos(a1) * g.radius, Math.sin(a1) * g.radius));
-          points.push(new THREE.Vector2(Math.cos(a2) * (g.radius * 1.08), Math.sin(a2) * (g.radius * 1.08)));
-        }
-        const shape = new THREE.Shape(points);
-        const geo = new THREE.ExtrudeGeometry(shape, { depth: g.thickness, bevelEnabled: false });
-        geo.center();
-        const mat = new THREE.MeshStandardMaterial({
-          color: g.color,
-          metalness: 0.8,
-          roughness: 0.3,
-          emissive: g.color,
-          emissiveIntensity: 0.3,
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.rotation.x = Math.PI * 0.5;
-        mesh.position.y = i * 0.05;
-        parent.add(mesh);
-        return { mesh, speed: g.speed };
-      });
-    };
-
-    const createAtmosphere = (
-      THREE: typeof import("three"),
-      parent: import("three").Group
-    ) => {
-      const layers = [
-        { radius: 3.5, color: 0x00ffee, opacity: 0.08, spin: 0.0015 },
-        { radius: 4.2, color: 0x00e5d1, opacity: 0.06, spin: -0.0012 },
-        { radius: 5.6, color: 0x6cead9, opacity: 0.04, spin: 0.0008 },
-      ];
-
-      return layers.map((l) => {
-        const g = new THREE.SphereGeometry(l.radius, 64, 64);
-        const m = new THREE.MeshStandardMaterial({
-          color: l.color,
-          transparent: true,
-          opacity: l.opacity,
-          wireframe: true,
-        });
-        const mesh = new THREE.Mesh(g, m);
-        parent.add(mesh);
-        return { mesh, spin: l.spin };
-      });
-    };
-
-    // CHANNELS: replace icon URLs with your own public icons if you have them.
-    // Make sure icons are CORS-friendly (Access-Control-Allow-Origin: *) or host on your domain.
-    const CHANNELS = [
-      { id: 'Web Chat',   icon: 'https://cdn.example.com/icons/webchat.svg',   link: 'https://your-webchat-link' },
-      { id: 'SMS',        icon: 'https://cdn.example.com/icons/sms.svg',       link: 'sms:+14374947028' },
-      { id: 'WhatsApp',   icon: 'https://cdn.example.com/icons/whatsapp.svg',  link: 'https://wa.me/14374947028' },
-      { id: 'Messenger',  icon: 'https://cdn.example.com/icons/messenger.svg', link: 'https://m.me/...' },
-      { id: 'Instagram',  icon: 'https://cdn.example.com/icons/instagram.svg', link: 'https://instagram.com/...' },
-      { id: 'Email',      icon: 'https://cdn.example.com/icons/email.svg',     link: 'mailto:...' },
-      { id: 'Calls',      icon: 'https://cdn.example.com/icons/phone.svg',     link: 'tel:+14374947028' },
-      { id: 'Booking',    icon: 'https://cdn.example.com/icons/calendar.svg',  link: 'https://www.lukairoengine.com/...' },
-      { id: 'CRM',        icon: 'https://cdn.example.com/icons/hubspot.svg',   link: 'https://crm.example.com/...' },
-      { id: 'Automation', icon: 'https://cdn.example.com/icons/automation.svg', link: 'https://automation.link' }
-    ];
-
-    // Helpers: CORS-safe load and canvas fallback
-    function makeCanvasIcon(THREE: typeof import("three"), text = 'LK', bg = '#00e5d1', size = 256) {
-      const c = document.createElement('canvas'); c.width = c.height = size;
-      const ctx = c.getContext('2d')!;
-      // background radial
-      const cx = size/2, cy = size/2, r = size*0.45;
-      const g = ctx.createRadialGradient(cx, cy, r*0.15, cx, cy, r*1.15);
-      g.addColorStop(0, bg);
-      g.addColorStop(0.5, hexToRgba(bg, 0.55));
-      g.addColorStop(1, hexToRgba(bg, 0.06));
-      ctx.fillStyle = g; ctx.fillRect(0,0,size,size);
-      // center dark disc
-      ctx.beginPath(); ctx.arc(cx,cy,r*0.78,0,Math.PI*2); ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fill();
-      // text
-      ctx.fillStyle = '#021515'; ctx.textAlign='center'; ctx.textBaseline='middle';
-      ctx.font = `bold ${Math.floor(size*0.46)}px Inter, system-ui`;
-      ctx.fillText(text.slice(0,2).toUpperCase(), cx, cy+2);
-      // soft highlight
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.fillStyle = hexToRgba('#ffffff', 0.06); ctx.beginPath(); ctx.arc(cx, cy - r*0.28, r*1.05, 0, Math.PI*2); ctx.fill();
-      const tex = new THREE.CanvasTexture(c); return tex;
-    }
-
-    function hexToRgba(hex: string, a = 1){
-      if (hex[0] === '#') hex = hex.slice(1);
-      const bigint = parseInt(hex,16);
-      const r = (bigint>>16)&255, g = (bigint>>8)&255, b = bigint&255;
-      return `rgba(${r},${g},${b},${a})`;
-    }
-
-    function loadTextureSafe(THREE: typeof import("three"), url: string, fallbackText='LK', fallbackColor='#00e5d1'){
-      return new Promise<import("three").Texture>(resolve => {
-        if (!url) { resolve(makeCanvasIcon(THREE, fallbackText, fallbackColor)); return; }
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        let done = false;
-        img.onload = () => {
-          try {
-            const tex = new THREE.Texture(img); tex.needsUpdate = true;
-            // try set color space if supported
-            try { tex.colorSpace = THREE.SRGBColorSpace; } catch(e){}
-            done = true; resolve(tex);
-          } catch(e){ done = true; resolve(makeCanvasIcon(THREE, fallbackText, fallbackColor)); }
-        };
-        img.onerror = (e) => { if (!done) { console.warn('Icon load failed', url, e); resolve(makeCanvasIcon(THREE, fallbackText, fallbackColor)); } };
-        img.src = url;
-        // safety timeout -> fallback
-        setTimeout(()=>{ if (!done) resolve(makeCanvasIcon(THREE, fallbackText, fallbackColor)); }, 4500);
-      });
-    }
-
-    const createIconNodes = async (
-      THREE: typeof import("three"),
-      scene: import("three").Scene,
-      camera: import("three").PerspectiveCamera,
-      renderer: import("three").WebGLRenderer,
-      options: { orbitBase?: number; planeSize?: number } = {}
-    ) => {
-      // options: orbitBase, planeSize
-      const orbitBase = options.orbitBase || 9.6;
-      const planeSize = options.planeSize || 1.9;
-      const nodeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
-      const nodes: import("three").Mesh[] = [], beams: import("three").Line[] = [], labels: HTMLDivElement[] = [];
-
-      // load all textures first (parallel)
-      const texPromises = CHANNELS.map((ch) =>
-        loadTextureSafe(THREE, ch.icon, (ch.id||'')[0]||'LK', '#00e5d1')
-      );
-
-      const textures = await Promise.all(texPromises);
-
-      // create nodes
-      CHANNELS.forEach((ch, i) => {
-        const tex = textures[i];
-        // make material render on top
-        const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, depthTest:false, depthWrite:false });
-        const plane = new THREE.Mesh(nodeGeo, mat);
-        plane.userData = {
-          angle: (Math.random()*Math.PI*2),
-          speed: 0.002 + Math.random()*0.0012,
-          elev: Math.random()*0.8 - 0.4,
-          beatPhase: Math.random()*Math.PI*2,
-          orbit: orbitBase + i*0.9
-        };
-        plane.renderOrder = 9999;
-        scene.add(plane);
-        nodes.push(plane);
-
-        // beam line
-        const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({ color: 0x00e5d1, transparent:true, opacity:0.22 }));
-        scene.add(line); beams.push(line);
-
-        // DOM label
-        const lbl = document.createElement('div');
-        lbl.className = 'lk-label lk-label--small';
-        lbl.innerText = ch.id;
-        document.body.appendChild(lbl);
-        labels.push(lbl);
-
-        // click handling by storing link
-        plane.userData.link = ch.link || null;
-      });
-
-      // mouse interactivity: raycaster
-      const ray = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
-      let hovered: import("three").Mesh | null = null;
-
-      function onPointerMove(e: PointerEvent){
-        const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-        ray.setFromCamera(mouse, camera);
-        const hits = ray.intersectObjects(nodes, true);
-        if (hits.length) {
-          const obj = hits[0].object as import("three").Mesh;
-          if (hovered !== obj) {
-            if (hovered) hovered.scale.setScalar(1);
-            hovered = obj; hovered.scale.setScalar(1.25);
-          }
-        } else {
-          if (hovered) hovered.scale.setScalar(1);
-          hovered = null;
-        }
+    const isWebGLAvailable = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        return !!(
+          window.WebGLRenderingContext &&
+          (canvas.getContext("webgl") || canvas.getContext("experimental-webgl"))
+        );
+      } catch {
+        return false;
       }
-      function onPointerDown(e: PointerEvent){
-        const rect = renderer.domElement.getBoundingClientRect();
-        mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
-        ray.setFromCamera(mouse, camera);
-        const hits = ray.intersectObjects(nodes, true);
-        if (hits.length) {
-          const obj = hits[0].object as import("three").Mesh;
-          const link = obj.userData.link;
-          if (link) window.open(link, '_blank', 'noopener');
-        }
-      }
-      renderer.domElement.addEventListener('pointermove', onPointerMove);
-      renderer.domElement.addEventListener('pointerdown', onPointerDown);
-
-      // animation updater — call this in your main animate loop
-      function updateIcons(now: number, camera: import("three").PerspectiveCamera) {
-        const t = now * 0.001;
-        nodes.forEach((n,i) => {
-          n.userData.angle += n.userData.speed;
-          const rr = n.userData.orbit + Math.sin(t*0.6 + i) * 0.35;
-          n.position.set(Math.cos(n.userData.angle) * rr, Math.sin(n.userData.angle * 2) * 0.9 + n.userData.elev * 2.2, Math.sin(n.userData.angle) * rr);
-          // face camera
-          n.lookAt(camera.position);
-          // small beat
-          const s = 1 + 0.12 * Math.sin(t + n.userData.beatPhase);
-          n.scale.setScalar(s);
-          // update beam
-          const beam = beams[i];
-          beam.geometry.setFromPoints([new THREE.Vector3(), n.position.clone()]);
-          // DOM label update
-          const v = n.position.clone().project(camera);
-          const x = (v.x * 0.5 + 0.5) * window.innerWidth;
-          const y = (-v.y * 0.5 + 0.5) * window.innerHeight;
-          const lbl = labels[i];
-          if (lbl) { lbl.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0) translate(-50%,-50%)`; lbl.style.opacity = beam.material.opacity > 0.18 ? '1' : '0.48'; }
-        });
-      }
-
-      // return handle so caller can call updateIcons from main loop and clean up
-      return {
-        nodes, beams, labels,
-        update: updateIcons,
-        dispose: () => {
-          renderer.domElement.removeEventListener('pointermove', onPointerMove);
-          renderer.domElement.removeEventListener('pointerdown', onPointerDown);
-          labels.forEach(l => l.remove());
-        }
-      };
     };
 
-    const createStarfield = (
-      THREE: typeof import("three"),
-      parent: import("three").Scene
-    ) => {
+    const onResize = () => {
+      if (!renderer || !camera || !mountRef.current) return;
+      const rect = mountRef.current.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width || window.innerWidth));
+      const height = Math.max(1, Math.floor(rect.height || window.innerHeight));
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+
+    const createStarfield = (THREE: typeof import("three"), count = 1200, radius = 6.5) => {
       const geometry = new THREE.BufferGeometry();
-      const count = 5400;
       const positions = new Float32Array(count * 3);
       for (let i = 0; i < count; i++) {
-        const r = 180 + Math.random() * 520;
+        const r = radius * (0.6 + Math.random() * 0.4);
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos(2 * Math.random() - 1);
         positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
@@ -307,122 +81,166 @@ export default function Hero({ bookingHref }: HeroProps) {
       }
       geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
       const material = new THREE.PointsMaterial({
-        color: 0x00e5d1,
-        size: 0.45,
+        color: 0x66ffcc,
+        size: 0.01,
         transparent: true,
-        opacity: 0.35,
-        depthWrite: false,
+        opacity: 0.6,
       });
-      const points = new THREE.Points(geometry, material);
-      parent.add(points);
-      return points;
+      return new THREE.Points(geometry, material);
     };
 
-    const onResize = () => {
-      if (!renderer || !camera || !mountRef.current) return;
-      const w = mountRef.current.clientWidth;
-      const h = mountRef.current.clientHeight;
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
+    const loadTexture = (
+      loader: import("three").TextureLoader,
+      url: string,
+      apply: (tex: import("three").Texture) => void
+    ) => {
+      loader.load(
+        url,
+        (tex) => {
+          apply(tex);
+        },
+        undefined,
+        (err) => {
+          console.warn("Texture load failed", url, err);
+        }
+      );
     };
 
     const init = async () => {
       if (!mountRef.current) return;
-      const THREE = await import("three");
+      if (!isWebGLAvailable()) {
+        setShowFallback(true);
+        return;
+      }
 
-      const width = mountRef.current.clientWidth || window.innerWidth;
-      const height = mountRef.current.clientHeight || 640;
+      const THREE = await import("three");
+      const rect = mountRef.current.getBoundingClientRect();
+      const width = Math.max(1, Math.floor(rect.width || window.innerWidth));
+      const height = Math.max(1, Math.floor(rect.height || window.innerHeight));
 
       scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(62, width / height, 0.1, 1200);
-      camera.position.set(0, 0, 22);
+      camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 100);
+      camera.position.set(0, 0.5, 2.7);
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(width, height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      const motionReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, motionReduced ? 1 : 2);
+
+      renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        alpha: true,
+        powerPreference: "high-performance",
+      });
+      renderer.setPixelRatio(pixelRatio);
+      renderer.setSize(width, height, false);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
+
       mountRef.current.appendChild(renderer.domElement);
 
-      const ambient = new THREE.AmbientLight(0x00e5d1, 0.4);
-      const key = new THREE.PointLight(0x00ffee, 1.3, 120);
-      key.position.set(10, 12, 18);
-      const fill = new THREE.PointLight(0x6cead9, 0.8, 90);
-      fill.position.set(-14, -6, 16);
-      scene.add(ambient, key, fill);
+      scene.add(new THREE.AmbientLight(0x66ffcc, 0.35));
+      const keyLight = new THREE.PointLight(0x4cffc4, 1.4, 10);
+      keyLight.position.set(2.2, 2.3, 3.2);
+      scene.add(keyLight);
+      const rimLight = new THREE.PointLight(0x00ffaa, 0.8, 8);
+      rimLight.position.set(-2.6, -1.4, -2.7);
+      scene.add(rimLight);
 
-      coreGroup = new THREE.Group();
-      scene.add(coreGroup);
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.setCrossOrigin("anonymous");
 
-      const baseCore = new THREE.Mesh(
-        new THREE.IcosahedronGeometry(3.6, 3),
-        new THREE.MeshStandardMaterial({
-          color: 0x04110f,
-          metalness: 0.7,
-          roughness: 0.2,
-          emissive: 0x003833,
-          emissiveIntensity: 0.6,
-        })
-      );
-      coreGroup.add(baseCore);
+      const coreGeo = new THREE.SphereGeometry(0.45, 96, 96);
+      const coreMat = new THREE.MeshStandardMaterial({
+        color: 0x222222,
+        roughness: 0.35,
+        metalness: 0.85,
+        emissive: new THREE.Color(0x22ffbb),
+        emissiveIntensity: 0.7,
+      });
+      gearsCore = new THREE.Mesh(coreGeo, coreMat);
+      scene.add(gearsCore);
 
-      const gears = createGears(THREE, coreGroup);
-      const atmospheres = createAtmosphere(THREE, coreGroup);
-      iconSystem = await createIconNodes(THREE, scene, camera, renderer, { orbitBase: 7.5, planeSize: 1.9 });
-      // assign to global arrays for compatibility
-      nodes.push(...iconSystem.nodes);
-      beams.push(...iconSystem.beams);
-      labels.push(...iconSystem.labels);
-      const stars = createStarfield(THREE, scene);
+      loadTexture(textureLoader, gearsTextureUrl, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = Math.min(renderer?.capabilities.getMaxAnisotropy?.() || 1, 8);
+        if (gearsCore?.material) {
+          gearsCore.material.map = tex;
+          gearsCore.material.emissiveIntensity = 0.9;
+          gearsCore.material.needsUpdate = true;
+        }
+      });
 
-      const hudPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(8, 5),
-        new THREE.MeshBasicMaterial({
-          color: 0x04110f,
-          transparent: true,
-          opacity: 0.35,
-        })
-      );
-      hudPlane.position.set(-5.5, -5.5, -6);
-      hudPlane.rotation.x = -0.08;
-      hudPlane.rotation.y = 0.24;
-      coreGroup.add(hudPlane);
+      const circGeo = new THREE.SphereGeometry(0.65, 96, 96);
+      const circMat = new THREE.MeshStandardMaterial({
+        color: 0x031015,
+        roughness: 0.55,
+        metalness: 0.3,
+        emissive: new THREE.Color(0x1bffc0),
+        emissiveIntensity: 0.45,
+        transparent: true,
+        opacity: 0.9,
+      });
+      circuitShell = new THREE.Mesh(circGeo, circMat);
+      scene.add(circuitShell);
 
-      const start = performance.now();
-      const motionReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      loadTexture(textureLoader, circuitsTextureUrl, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.anisotropy = Math.min(renderer?.capabilities.getMaxAnisotropy?.() || 1, 8);
+        if (circuitShell?.material) {
+          circuitShell.material.map = tex;
+          circuitShell.material.needsUpdate = true;
+        }
+      });
 
+      const globeGeo = new THREE.SphereGeometry(0.85, 96, 96);
+      const globeMat = new THREE.MeshPhongMaterial({
+        color: 0x020b11,
+        emissive: 0x0cf0b0,
+        emissiveIntensity: 0.55,
+        shininess: 16,
+        transparent: true,
+        opacity: 0.55,
+      });
+      globeShell = new THREE.Mesh(globeGeo, globeMat);
+      scene.add(globeShell);
+
+      loadTexture(textureLoader, globeTextureUrl, (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = Math.min(renderer?.capabilities.getMaxAnisotropy?.() || 1, 8);
+        if (globeShell?.material) {
+          globeShell.material.map = tex;
+          globeShell.material.needsUpdate = true;
+        }
+      });
+
+      const wireMat = new THREE.MeshBasicMaterial({
+        color: 0x36ffca,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.12,
+      });
+      wireMesh = new THREE.Mesh(globeGeo, wireMat);
+      scene.add(wireMesh);
+
+      starField = createStarfield(THREE, 1200, 6.5);
+      scene.add(starField);
+
+      clock = new THREE.Clock();
       const animate = () => {
         frameId = requestAnimationFrame(animate);
-        if (!renderer || !scene || !camera || !coreGroup) return;
-
-        const t = (performance.now() - start) * 0.001;
-
-        coreGroup.rotation.y = t * 0.12;
-        baseCore.rotation.x = t * 0.16;
-        baseCore.rotation.y = t * 0.14;
-
-        gears.forEach(({ mesh, speed }) => {
-          mesh.rotation.z += speed;
-        });
-
-        atmospheres.forEach(({ mesh, spin }) => {
-          mesh.rotation.y += spin;
-        });
-
-        if (iconSystem) iconSystem.update(performance.now(), camera);
-
-        if (!motionReduced) {
-          stars.rotation.y += 0.0006;
-          stars.rotation.x += 0.0003;
-          camera.position.z = 22 + Math.sin(t * 0.3) * 0.5;
-          camera.lookAt(0, 0, 0);
-        }
-
+        if (!renderer || !scene || !camera || !clock) return;
+        const dt = clock.getDelta();
+        if (gearsCore) gearsCore.rotation.y += 0.6 * dt;
+        if (circuitShell) circuitShell.rotation.y -= 0.5 * dt;
+        if (globeShell) globeShell.rotation.y += 0.3 * dt;
+        if (wireMesh) wireMesh.rotation.y += 0.3 * dt;
         renderer.render(scene, camera);
       };
 
       animate();
       setLoaded(true);
-      window.addEventListener("resize", onResize);
+      window.addEventListener("resize", onResize, { passive: true });
     };
 
     init();
@@ -430,9 +248,7 @@ export default function Hero({ bookingHref }: HeroProps) {
     return () => {
       cancelAnimationFrame(frameId);
       window.removeEventListener("resize", onResize);
-      if (iconSystem) iconSystem.dispose();
-      labels.forEach((el) => el.remove());
-      disposeObject(coreGroup ?? undefined);
+      disposeObject(scene ?? undefined);
       if (renderer) {
         renderer.dispose?.();
         renderer.forceContextLoss?.();
@@ -440,13 +256,18 @@ export default function Hero({ bookingHref }: HeroProps) {
       }
       scene = null;
       camera = null;
-      coreGroup = null;
-      iconSystem = null;
+      renderer = null;
+      clock = null;
+      gearsCore = null;
+      circuitShell = null;
+      globeShell = null;
+      wireMesh = null;
+      starField = null;
     };
-  }, []);
+  }, [gearsTextureUrl, circuitsTextureUrl, globeTextureUrl]);
 
   return (
-    <section id="lukairo-engine">
+    <section id="lukairo-engine" role="region" aria-label="LUKAIRO Neural Core">
       <div className="lukairo-header">
         <div className="lukairo-header-inner">
           <div className="lukairo-brand">
@@ -477,16 +298,21 @@ export default function Hero({ bookingHref }: HeroProps) {
 
       <div className="lukairo-hud">
         <h1 className="lukairo-title">
-          LUKAIRO <span>ENGINE</span>
+          LUK<span>AIRO</span>
         </h1>
-        <p className="lukairo-sub">Connect • Orchestrate • Automate</p>
+        <p className="lukairo-sub">The neural core · connecting everything</p>
       </div>
 
       <div className="lukairo-core-glow" aria-hidden="true" />
 
-      <div id="lukairo-canvas" ref={mountRef} aria-label="3D engine visualization" />
+      <div
+        id="lukairo-canvas"
+        ref={mountRef}
+        role="img"
+        aria-label="Three rotating layered spheres representing gears, circuits, and a data globe with starfield backdrop."
+      />
 
-      {!loaded && (
+      {!loaded && !showFallback && (
         <div className="lukairo-loader" role="status" aria-live="polite">
           <div className="loader-wrap">
             <div className="loader-rings">
@@ -496,6 +322,14 @@ export default function Hero({ bookingHref }: HeroProps) {
             </div>
             <div>Starting engines...</div>
           </div>
+        </div>
+      )}
+
+      {showFallback && (
+        <div id="lukairo-fallback" role="status" aria-live="polite">
+          <h2>LUKAIRO Engine</h2>
+          <p>Unable to initialize the 3D visualization. This feature requires WebGL.</p>
+          <small>Check GPU settings and CDN headers, then retry.</small>
         </div>
       )}
     </section>

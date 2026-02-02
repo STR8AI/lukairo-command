@@ -203,9 +203,9 @@
                     </p>
 
                     <a
-                        href="https://www.lukairoengine.com/widget/booking/SGgO7LS3M1CVcD0ok6xV"
+                        href="https://example.com"
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         class="cta-button"
                     >
                         Book a Call
@@ -246,6 +246,23 @@
                 <p class="card-content">LUKAIRO® | Plug-and-Play Growth Engines</p>
             </div>
         </section>
+
+        <section class="bio-block">
+  <div class="bio-block__header">
+    <img class="bio-block__logo" src="{{ custom_values.bioimg }}" alt="{{ custom_values.logotext }}" />
+    <div class="bio-block__identity">
+      <div class="bio-block__logo-text">{{ custom_values.logotext }}</div>
+      <div class="bio-block__logo-tagline">{{ custom_values.logotagline }}</div>
+    </div>
+  </div>
+
+  <h1 class="bio-block__headline">{{ custom_values.headline }}</h1>
+  <p class="bio-block__subhead">{{ custom_values.subhead }}</p>
+
+  <ul class="bio-block__bullets">
+    {{ custom_values.bullets }}
+  </ul>
+</section>
     </div>
 
     <script>
