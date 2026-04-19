@@ -1,4 +1,5 @@
-import type { LinksFunction } from "@remix-run/node";
+// file: app/root.tsx
+import type { LinksFunction } from "@remix-run/cloudflare";
 import {
   Links,
   LiveReload,
@@ -8,9 +9,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react";
 
-export const links: LinksFunction = () => [
-  // Add any static links here if needed
-];
+export const links: LinksFunction = () => [];
 
 export default function App() {
   return (
