@@ -1,128 +1,70 @@
-diff --git a/app/routes/home.css b/app/routes/home.css
-index c2295b423025886ed5e3b39c76f892ff678aa307..c965bda4f2c0ae4d55cbaebef000a77754a11989 100644
---- a/app/routes/home.css
-+++ b/app/routes/home.css
-@@ -1,106 +1,38 @@
- :root {
--  color-scheme: light;
-   font-family: "Inter", "Segoe UI", system-ui, sans-serif;
--  --navy: #0b1a2b;
--  --mist: #f5f7fb;
--  --red: #d94841;
--  --text: #1b2430;
--  --muted: #5c6a7a;
+diff --git a/app/routes/home.tsx b/app/routes/home.tsx
+index f3b6d93f5954279bb6a2b247f9024a75357fd89d..3b49b47b3e1bbf412f545727c5bd8587128ed307 100644
+--- a/app/routes/home.tsx
++++ b/app/routes/home.tsx
+@@ -1,59 +1,24 @@
+ import type { Route } from "./+types/home";
+ import styles from "./home.css?url";
+ 
+ export const links: Route.LinksFunction = () => [{ rel: "stylesheet", href: styles }];
+ 
+ export function meta() {
+   return [
+-    { title: "Maritime HVAC | Home, Health & Peace of Mind" },
++    { title: "Lukairo Homepage" },
+     {
+       name: "description",
+-      content:
+-        "Maritime HVAC delivers heating, cooling, electrical, and water quality solutions across the Maritimes with trusted service and flexible payment options.",
++      content: "Welcome to Lukairo — your go-to platform for all your needs.",
+     },
+   ];
  }
  
- * {
-   box-sizing: border-box;
- }
- 
- body {
-   margin: 0;
--  background: var(--mist);
--  color: var(--text);
--}
--
--a {
--  color: inherit;
--  text-decoration: none;
--}
--
--a:hover {
--  color: var(--red);
--}
--
--.maritime-home {
--  max-width: 1200px;
--  margin: 0 auto;
--  padding: 24px 20px 60px;
--}
--
--.site-header {
--  display: flex;
--  flex-wrap: wrap;
--  align-items: center;
--  justify-content: space-between;
--  gap: 16px;
--  padding: 16px 0 24px;
--  border-bottom: 2px solid #fff;
--}
--
--.brand {
--  display: flex;
--  align-items: center;
--  gap: 12px;
--}
--
--.brand-mark {
--  width: 48px;
--  height: 48px;
--  border-radius: 14px;
--  background: var(--navy);
--  color: white;
-+  min-height: 100vh;
-   display: grid;
-   place-items: center;
--  font-weight: 800;
--  font-size: 20px;
--}
--
--.brand-name {
--  font-size: 20px;
--  font-weight: 800;
--  margin: 0;
-+  background: #f8fafc;
-+  color: #0f172a;
- }
- 
--.brand-tag {
--  margin: 4px 0 0;
--  color: var(--muted);
--  font-weight: 500;
-+.lukairo-home {
-+  text-align: center;
-+  padding: 2rem;
- }
- 
--.main-nav {
--  display: flex;
--  flex-wrap: wrap;
--  gap: 16px;
--  font-weight: 600;
-+.lukairo-logo {
-+  width: 96px;
-+  height: 96px;
-+  margin-bottom: 1rem;
- }
- 
--.header-actions {
--  display: flex;
--  flex-direction: column;
--  align-items: flex-end;
--  gap: 8px;
--}
--
--.phone {
--  font-weight: 700;
--  color: var(--navy);
--}
--
--.socials {
--  display: flex;
--  gap: 12px;
--  font-size: 14px;
--  color: var(--muted);
-+h1 {
-+  margin: 0;
-+  font-size: clamp(2rem, 4vw, 2.75rem);
- }
- 
--@media (max-width: 800px) {
--  .header-actions {
--    align-items: flex-start;
--  }
-+p {
-+  margin: 0.75rem 0 0;
-+  color: #475569;
-+  font-size: 1.1rem;
+ export default function Home() {
+   return (
+-    <main className="maritime-home">
+-      <header className="site-header">
+-        <div className="brand">
+-          <div className="brand-mark" aria-hidden="true">
+-            M
+-          </div>
+-          <div>
+-            <p className="brand-name">Maritime HVAC</p>
+-            <p className="brand-tag">Home, Health &amp; Peace of Mind</p>
+-          </div>
+-        </div>
+-        <nav className="main-nav" aria-label="Main menu">
+-          <a href="#services">Services</a>
+-          <a href="#payment-options">Payment Options</a>
+-          <a href="/request-service">Request Service</a>
+-          <a href="https://www.financeit.io/" target="_blank" rel="noreferrer">
+-            Financing
+-          </a>
+-          <a href="#warranty">Warranty</a>
+-          <a href="#contact">Contact</a>
+-        </nav>
+-        <div className="header-actions">
+-          <a className="phone" href="tel:19024146000">
+-            Call Us (902) 414.6000
+-          </a>
+-          <div className="socials" aria-label="Social media links">
+-            <a href="https://www.facebook.com" target="_blank" rel="noreferrer">
+-              Facebook
+-            </a>
+-            <a href="https://www.instagram.com" target="_blank" rel="noreferrer">
+-              Instagram
+-            </a>
+-            <a href="https://www.linkedin.com" target="_blank" rel="noreferrer">
+-              LinkedIn
+-            </a>
+-          </div>
+-        </div>
+-      </header>
++    <main className="lukairo-home">
++      <img className="lukairo-logo" src="/lukairo-logo.svg" alt="Lukairo Logo" />
++      <h1>Welcome to Lukairo!</h1>
++      <p>Your go-to platform for all your needs.</p>
+     </main>
+   );
  }
